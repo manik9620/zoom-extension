@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Zoom Class Companion",
+  "version": "0.0.1",
+  "description": "Capture Zoom class audio, transcribe locally, generate notes.",
+  "permissions": ["tabCapture", "offscreen", "storage", "unlimitedStorage", "sidePanel", "activeTab"],
+  "host_permissions": [
+    "https://app.zoom.us/*",
+    "https://events.zoom.us/*",
+    "https://*.zoom.us/*",
+    "http://127.0.0.1:8765/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/index.html"
+  },
+  "action": {
+    "default_title": "Zoom Class Companion"
+  }
+}

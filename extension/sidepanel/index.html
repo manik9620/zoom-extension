@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Zoom Class Companion</title>
+    <style>
+      :root {
+        --bg: #0f1115;
+        --panel: #171a21;
+        --panel-border: #262b36;
+        --text: #e7e9ee;
+        --text-dim: #8b93a3;
+        --accent: #6c5ce7;
+        --accent-glow: rgba(108, 92, 231, 0.35);
+        --live: #2ecc71;
+        --error: #ff6b6b;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        width: 340px;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        flex: none;
+        padding: 16px 16px 12px;
+        border-bottom: 1px solid var(--panel-border);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), #a29bfe);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .header h1 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: 0.2px;
+        flex: 1;
+      }
+      .icon-btn {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 4px;
+      }
+      .body {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 14px 16px 16px;
+      }
+      .controls { flex: none; display: flex; gap: 8px; margin-bottom: 12px; }
+      button {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.08s ease, opacity 0.15s ease, background 0.15s ease;
+        font-family: inherit;
+      }
+      button:active:not(:disabled) { transform: scale(0.97); }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      #mainAction.state-idle,
+      #mainAction.state-stopped {
+        background: linear-gradient(135deg, var(--accent), #8073f5);
+        color: white;
+        box-shadow: 0 2px 12px var(--accent-glow);
+      }
+      #mainAction.state-live {
+        background: linear-gradient(135deg, #ff5f5f, #e64545);
+        color: white;
+        box-shadow: 0 2px 12px rgba(230, 69, 69, 0.35);
+      }
+      #startNew {
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--panel-border);
+      }
+      .status-row {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 12px;
+        min-height: 16px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-dim);
+        flex-shrink: 0;
+      }
+      .dot.live {
+        background: var(--live);
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6);
+        animation: pulse 1.6s infinite;
+      }
+      .dot.error { background: var(--error); }
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.5); }
+        70% { box-shadow: 0 0 0 6px rgba(46, 204, 113, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+      }
+      .tabs {
+        flex: none;
+        display: flex;
+        gap: 4px;
+        margin-bottom: 10px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 3px;
+      }
+      .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        padding: 7px 0;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .tab-btn.active { background: var(--accent); color: white; }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        font-size: 13px;
+        line-height: 1.65;
+        color: var(--text);
+        display: none;
+      }
+      .panel.active { display: block; }
+      #transcript:empty::before {
+        content: "Transcript will appear here once you start capturing.";
+        color: var(--text-dim);
+      }
+      .panel::-webkit-scrollbar { width: 6px; }
+      .panel::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+      .seg { animation: fadeIn 0.25s ease; }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      #notesEmpty { color: var(--text-dim); font-size: 13px; }
+      #notesEmpty button {
+        margin-top: 10px;
+        background: linear-gradient(135deg, var(--accent), #8073f5);
+        color: white;
+      }
+      .notes-section { margin-bottom: 16px; }
+      .notes-section h3 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-dim);
+        margin: 0 0 6px;
+      }
+      .notes-section ul { margin: 0; padding-left: 18px; }
+      .notes-section li { margin-bottom: 4px; }
+      .notes-section p { margin: 0; }
+      .export-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+        padding-top: 12px;
+        border-top: 1px solid var(--panel-border);
+      }
+      .export-row button {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--panel-border);
+        font-size: 12px;
+        padding: 8px 10px;
+      }
+      .privacy-note {
+        flex: none;
+        margin-top: 10px;
+        font-size: 11px;
+        color: var(--text-dim);
+        line-height: 1.5;
+      }
+      .history-item {
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+      }
+      .history-item .title { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+      .history-item .date { font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+      .history-item .row { display: flex; gap: 6px; }
+      .history-item button {
+        flex: none;
+        padding: 6px 10px;
+        font-size: 11px;
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--panel-border);
+      }
+      .history-item button.danger { color: var(--error); }
+      #historyList:empty::before {
+        content: "No saved meetings yet.";
+        color: var(--text-dim);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">Z</div>
+      <h1>Zoom Class Companion</h1>
+    </div>
+    <div class="body">
+      <div class="controls">
+        <button id="mainAction" class="state-idle">Start Capture</button>
+        <button id="startNew" style="display: none">Start New</button>
+      </div>
+      <div class="status-row">
+        <span id="statusDot" class="dot"></span>
+        <span id="status">idle</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="transcript">Transcript</button>
+        <button class="tab-btn" data-tab="notes">Notes</button>
+        <button class="tab-btn" data-tab="history">History</button>
+      </div>
+
+      <div id="transcript" class="panel active"></div>
+      <div id="notes" class="panel">
+        <div id="notesEmpty">
+          No notes yet. Stop capture, then generate notes from the transcript.
+          <br />
+          <button id="generateNotes">Generate Notes</button>
+        </div>
+        <div id="notesContent" style="display: none">
+          <div id="notesBody"></div>
+          <div class="export-row">
+            <button id="copyMd">Copy as Markdown</button>
+            <button id="downloadMd">Download .md</button>
+          </div>
+        </div>
+      </div>
+      <div id="history" class="panel">
+        <div id="historyList"></div>
+      </div>
+
+      <div class="privacy-note">
+        🔒 Audio never leaves your laptop. Only the text transcript is sent to Gemini to generate notes.
+      </div>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
